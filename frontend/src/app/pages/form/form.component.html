@@ -8,9 +8,7 @@
   }
   <!-- TODO: Yes/No -->
   @else if (question.type === 'yesno'){
-  <div>
-    <p>yes/no question</p>
-  </div>
+  <app-yesnoq [question]="question" [control]="getControl(question.id)" />
   }
   <!-- Text -->
   @else if (question.type === 'text'){
