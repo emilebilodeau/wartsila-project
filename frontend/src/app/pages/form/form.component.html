@@ -1,1 +1,35 @@
-<p>form works!</p>
+<form (ngSubmit)="onSubmit()">
+  <div>
+    @for (question of questions; track question.id){
+    <label>{{ question.question }}</label>
+
+    <!-- Linear -->
+    @if (question.type === 'linear'){
+    <div>
+      <p>linear question</p>
+    </div>
+    }
+    <!-- Yes/No -->
+    @else if (question.type === 'yesno'){
+    <div>
+      <p>yes/no question</p>
+    </div>
+    }
+    <!-- Text -->
+    @else if (question.type === 'text'){
+    <div>
+      <p>text question</p>
+    </div>
+    }
+    <!-- Number -->
+    @else if (question.type === 'number'){
+    <div>
+      <p>number question</p>
+    </div>
+    }
+    <hr />
+    }
+  </div>
+
+  <button type="submit">Submit</button>
+</form>
