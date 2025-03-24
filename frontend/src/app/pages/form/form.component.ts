@@ -7,10 +7,12 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { TextqComponent } from '../../components/textq/textq.component';
+import { NumberqComponent } from '../../components/numberq/numberq.component';
 
 @Component({
   selector: 'app-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TextqComponent, NumberqComponent],
   templateUrl: './form.component.html',
   styleUrl: './form.component.scss',
 })
@@ -48,11 +50,15 @@ export class FormComponent implements OnInit {
       if (q.type === 'text' || q.type === 'yesno') {
         formGroup[q.id] = this.fb.control('', Validators.required);
       } else if (q.type === 'linear' || q.type === 'number') {
-        formGroup[q.id] = this.fb.control(0, Validators.required);
+        formGroup[q.id] = this.fb.control('', Validators.required);
       }
     }
 
     this.form = this.fb.group(formGroup);
+  }
+
+  getControl(id: string): FormControl {
+    return this.form.get(id) as FormControl;
   }
 
   onSubmit(): void {
