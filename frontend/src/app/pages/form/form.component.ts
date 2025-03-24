@@ -15,7 +15,7 @@ import {
   styleUrl: './form.component.scss',
 })
 export class FormComponent implements OnInit {
-  // NOTE: hard coding for now
+  // NOTE: hard coding for now, replace for API call later
   questions: Question[] = [
     // {
     //   id: '1',
@@ -45,7 +45,11 @@ export class FormComponent implements OnInit {
   ngOnInit(): void {
     const formGroup: { [key: string]: FormControl } = {};
     for (const q of this.questions) {
-      formGroup[q.id] = this.fb.control('', Validators.required);
+      if (q.type === 'text' || q.type === 'yesno') {
+        formGroup[q.id] = this.fb.control('', Validators.required);
+      } else if (q.type === 'linear' || q.type === 'number') {
+        formGroup[q.id] = this.fb.control(0, Validators.required);
+      }
     }
 
     this.form = this.fb.group(formGroup);
@@ -55,8 +59,6 @@ export class FormComponent implements OnInit {
     if (this.form.valid) {
       console.log('Submitted values:', this.form.value);
       alert(JSON.stringify(this.form.value));
-    } else {
-      console.log('form invalid');
     }
   }
 }
