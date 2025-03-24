@@ -10,6 +10,7 @@ import {
 import { TextqComponent } from '../../components/textq/textq.component';
 import { NumberqComponent } from '../../components/numberq/numberq.component';
 import { YesnoqComponent } from '../../components/yesnoq/yesnoq.component';
+import { LinearqComponent } from '../../components/linearq/linearq.component';
 
 @Component({
   selector: 'app-form',
@@ -18,6 +19,7 @@ import { YesnoqComponent } from '../../components/yesnoq/yesnoq.component';
     TextqComponent,
     NumberqComponent,
     YesnoqComponent,
+    LinearqComponent,
   ],
   templateUrl: './form.component.html',
   styleUrl: './form.component.scss',
@@ -25,11 +27,11 @@ import { YesnoqComponent } from '../../components/yesnoq/yesnoq.component';
 export class FormComponent implements OnInit {
   // NOTE: hard coding for now, replace for API call later
   questions: Question[] = [
-    // {
-    //   id: '1',
-    //   type: 'linear',
-    //   question: 'how are you feeling today?',
-    // },
+    {
+      id: '1',
+      type: 'linear',
+      question: 'how are you feeling today?',
+    },
     {
       id: '2',
       type: 'number',

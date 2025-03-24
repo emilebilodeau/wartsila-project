@@ -1,10 +1,8 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<form class="survey-box" [formGroup]="form" (ngSubmit)="onSubmit()">
   @for (question of questions; track question.id){
   <!-- TODO: Linear -->
   @if (question.type === 'linear'){
-  <div>
-    <p>linear question</p>
-  </div>
+  <app-linearq [question]="question" [control]="getControl(question.id)" />
   }
   <!-- TODO: Yes/No -->
   @else if (question.type === 'yesno'){

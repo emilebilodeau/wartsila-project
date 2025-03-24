@@ -1,0 +1,17 @@
+<div>
+  <label>{{ question.question }}</label>
+  <div style="display: flex; gap: 8px; flex-wrap: wrap">
+    @for (value of scale; track value) {
+    <label>
+      <input
+        type="radio"
+        [value]="value"
+        [formControl]="control"
+        [name]="question.id"
+        [id]="question.id + value"
+      />
+      {{ value }}
+    </label>
+    }
+  </div>
+</div>
