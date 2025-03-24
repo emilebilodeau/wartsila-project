@@ -1,5 +1,5 @@
 export interface Question {
-  id: number;
+  id: string;
   type: 'linear' | 'yesno' | 'text' | 'number';
   question: string;
 }

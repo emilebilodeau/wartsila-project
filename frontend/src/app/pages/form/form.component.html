@@ -1,15 +1,14 @@
-<form (ngSubmit)="onSubmit()">
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  @for (question of questions; track question.id){
   <div>
-    @for (question of questions; track question.id){
-    <label>{{ question.question }}</label>
-
-    <!-- Linear -->
+    <label [for]="question.id">{{ question.question }}</label>
+    <!-- TODO: Linear -->
     @if (question.type === 'linear'){
     <div>
       <p>linear question</p>
     </div>
     }
-    <!-- Yes/No -->
+    <!-- TODO: Yes/No -->
     @else if (question.type === 'yesno'){
     <div>
       <p>yes/no question</p>
@@ -18,18 +17,18 @@
     <!-- Text -->
     @else if (question.type === 'text'){
     <div>
-      <p>text question</p>
+      <input [id]="question.id" type="text" [formControlName]="question.id" />
     </div>
     }
     <!-- Number -->
     @else if (question.type === 'number'){
     <div>
-      <p>number question</p>
+      <input [id]="question.id" type="number" [formControlName]="question.id" />
     </div>
     }
-    <hr />
-    }
   </div>
+  <hr />
+  }
 
-  <button type="submit">Submit</button>
+  <button type="submit" [disabled]="form.invalid">Submit</button>
 </form>

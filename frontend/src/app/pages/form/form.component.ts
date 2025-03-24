@@ -1,62 +1,62 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Question } from '../../models/question.model';
+import {
+  FormBuilder,
+  FormGroup,
+  FormControl,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-form',
-  imports: [],
+  imports: [ReactiveFormsModule],
   templateUrl: './form.component.html',
   styleUrl: './form.component.scss',
 })
-export class FormComponent {
-  // hard coding for now
+export class FormComponent implements OnInit {
+  // NOTE: hard coding for now
   questions: Question[] = [
+    // {
+    //   id: '1',
+    //   type: 'linear',
+    //   question: 'how are you feeling today?',
+    // },
     {
-      id: 1,
-      type: 'linear',
-      question: 'how are you feeling today?',
-    },
-    {
-      id: 2,
+      id: '2',
       type: 'number',
       question: 'how many hours did you sleep?',
     },
+    // {
+    //   id: '3',
+    //   type: 'yesno',
+    //   question: 'was your sleep disrupted/woke up during the night?',
+    // },
     {
-      id: 3,
-      type: 'yesno',
-      question: 'was your sleep disrupted/woke up during the night?',
+      id: '4',
+      type: 'text',
+      question: 'journaling section',
     },
   ];
+  form!: FormGroup;
 
-  // from GPT, not sure how this works for now but it looks like the...
-  // ... path i want to take
-  // answersForm: FormGroup = this.fb.group({});
-  // isLoading = true;
+  constructor(private fb: FormBuilder) {}
 
-  // constructor(private http: HttpClient, private fb: FormBuilder) {}
+  ngOnInit(): void {
+    const formGroup: { [key: string]: FormControl } = {};
+    for (const q of this.questions) {
+      formGroup[q.id] = this.fb.control('', Validators.required);
+    }
 
-  // ngOnInit(): void {
-  //   this.http.get<Question[]>('/api/survey/questions').subscribe((data) => {
-  //     this.questions = data;
-  //     this.buildForm();
-  //     this.isLoading = false;
-  //   });
-  // }
+    this.form = this.fb.group(formGroup);
+  }
 
-  // buildForm(): void {
-  //   this.questions.forEach((q) => {
-  //     this.answersForm.addControl(q.id, this.fb.control('', Validators.required));
-  //   });
-  // }
-
-  // onSubmit(): void {
-  //   if (this.answersForm.valid) {
-  //     const responses = this.answersForm.value;
-  //     this.http.post('/api/survey/submit', responses).subscribe((res) => {
-  //       alert('Submitted successfully!');
-  //     });
-  //   }
-  // }
   onSubmit(): void {
-    alert('Submitted');
+    if (this.form.valid) {
+      console.log('Submitted values:', this.form.value);
+      alert(JSON.stringify(this.form.value));
+    } else {
+      console.log('form invalid');
+    }
   }
 }
