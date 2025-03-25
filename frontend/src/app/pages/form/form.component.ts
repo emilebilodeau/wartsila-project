@@ -84,9 +84,39 @@ export class FormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.valid) {
-      console.log('Submitted values:', this.form.value);
-      alert(JSON.stringify(this.form.value));
+    if (!this.form.valid) return;
+
+    const survey = JSON.parse(localStorage.getItem('selectedSurvey') || '{}');
+
+    if (!survey?.id) {
+      alert('No survey selected.');
+      return;
     }
+
+    // Convert form data to array of { question_id, answer }
+    const answers = Object.entries(this.form.value).map(([id, answer]) => ({
+      question_id: Number(id), // convert key back to number
+      answer,
+    }));
+
+    const payload = {
+      survey_id: survey.id,
+      answers,
+    };
+
+    // NOTE: for testing, can delete later
+    console.log('submitted', payload);
+
+    this.http.post('http://localhost:8800/api/responses', payload).subscribe({
+      next: (res) => {
+        console.log('Survey submitted successfully', res);
+        alert('Thanks for submitting your answers!');
+        this.form.reset();
+      },
+      error: (err) => {
+        console.error('Error submitting survey:', err);
+        alert('Failed to submit your survey. Please try again.');
+      },
+    });
   }
 }

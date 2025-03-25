@@ -129,4 +129,51 @@ router.get("/api/surveys/:id/questions", async (req, res: any) => {
   }
 });
 
+// submit answer endpoint for a form
+router.post("/api/responses", async (req, res: any) => {
+  const { survey_id, answers } = req.body;
+
+  if (!survey_id || !Array.isArray(answers) || answers.length === 0) {
+    return res.status(400).json({ error: "Invalid response payload" });
+  }
+
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Create a new response
+    const [responseResult] = await connection.query(
+      `INSERT INTO responses (survey_id, responded_at) VALUES (?, NOW())`,
+      [survey_id]
+    );
+    const responseId = (responseResult as any).insertId;
+
+    // 2. Insert answers
+    const answerInsertPromises = answers.map((ans: any) =>
+      connection.query(
+        `INSERT INTO answers (response_id, question_id, answer_text, created_at)
+           VALUES (?, ?, ?, NOW())`,
+        [
+          responseId,
+          ans.question_id,
+          String(ans.answer), // store all answers as strings for now
+        ]
+      )
+    );
+
+    await Promise.all(answerInsertPromises);
+
+    await connection.commit();
+    res
+      .status(201)
+      .json({ message: "Response saved", response_id: responseId });
+  } catch (err) {
+    await connection.rollback();
+    console.error("Error saving survey response:", err);
+    res.status(500).json({ error: "Failed to save survey response" });
+  } finally {
+    connection.release();
+  }
+});
+
 export default router;
