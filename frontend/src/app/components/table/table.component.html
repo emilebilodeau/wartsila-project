@@ -4,6 +4,7 @@
       @for (column of columns; track column.key) {
       <th>{{ column.label }}</th>
       }
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -12,6 +13,10 @@
       @for (column of columns; track column.key) {
       <td>{{ row[column.key] }}</td>
       }
+      <td>
+        <button>Delete</button>
+        <button>Update</button>
+      </td>
     </tr>
     }
   </tbody>
