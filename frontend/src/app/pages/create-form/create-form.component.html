@@ -1,1 +1,53 @@
-<p>create-form works!</p>
+<!-- Question creator form -->
+<form
+  [formGroup]="questionForm"
+  (ngSubmit)="addQuestion()"
+  class="question-form"
+>
+  <label>Question:</label>
+  <input type="text" formControlName="question" />
+
+  <label>Type:</label>
+  <select formControlName="type">
+    @for (type of questionTypes; track type) {
+    <option [value]="type">{{ type }}</option>
+    }
+  </select>
+
+  <!-- Show min/max only for linear -->
+  @if (questionForm.get('type')?.value === 'linear') {
+  <label>Min:</label>
+  <input type="number" formControlName="min" />
+
+  <label>Max:</label>
+  <input type="number" formControlName="max" />
+  }
+
+  <button type="submit" [disabled]="questionForm.invalid">Add Question</button>
+</form>
+
+<hr />
+
+<!-- Render added questions -->
+<!-- NOTE: can probably try to make a reusable component from the original form page -->
+<div class="survey-box">
+  <h3>Survey Preview</h3>
+
+  @for (q of questions; track q.id) { @if (q.type === 'text') {
+  <app-textq [question]="q" [control]="previewControl" />
+  } @else if (q.type === 'number') {
+  <app-numberq [question]="q" [control]="previewControl" />
+  } @else if (q.type === 'yesno') {
+  <app-yesnoq [question]="q" [control]="previewControl" />
+  } @else if (q.type === 'linear') {
+  <app-linearq [question]="q" [control]="previewControl" />
+  }
+  <div>
+    <button (click)="removeQuestion(q.id)">Delete</button>
+  </div>
+  <hr />
+  }
+  <button (click)="saveSurvey()" [disabled]="questions.length === 0">
+    Save Survey
+  </button>
+</div>

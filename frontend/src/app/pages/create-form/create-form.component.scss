@@ -1,0 +1,18 @@
+.question-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 500px;
+  margin-bottom: 24px;
+  margin: 16px auto;
+}
+
+.survey-box {
+  width: 40%;
+  margin: 16px auto; /* Center it */
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
