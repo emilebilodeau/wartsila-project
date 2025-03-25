@@ -6,7 +6,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
-
+import { HttpClient } from '@angular/common/http';
 import { TextqComponent } from '../../components/textq/textq.component';
 import { NumberqComponent } from '../../components/numberq/numberq.component';
 import { LinearqComponent } from '../../components/linearq/linearq.component';
@@ -40,7 +40,7 @@ export class CreateFormComponent {
   // ... during survey creation
   previewControl = new FormControl();
 
-  constructor(private fb: FormBuilder) {
+  constructor(private http: HttpClient, private fb: FormBuilder) {
     this.questionForm = this.fb.group({
       question: ['', Validators.required],
       type: ['text', Validators.required],
@@ -72,31 +72,23 @@ export class CreateFormComponent {
   }
 
   saveSurvey(): void {
-    const survey = {
+    const payload = {
       title: this.surveyTitle.value,
-      createdAt: new Date().toISOString(),
       questions: this.questions,
     };
 
-    // For now, just log it
-    console.log('Survey to send to backend:', survey);
+    this.http.post('http://localhost:8800/api/surveys', payload).subscribe({
+      next: (res) => {
+        console.log('Survey created:', res);
+        alert('Survey created!');
+        // Optionally reset form
+        this.surveyTitle.reset();
+        this.questions = [];
+      },
+      error: (err) => {
+        console.error('Failed to create survey', err);
+        alert('Failed to create survey.');
+      },
+    });
   }
 }
-
-// NOTE: sample code for when backend is ready
-// import { HttpClient } from '@angular/common/http';
-
-// constructor(private fb: FormBuilder, private http: HttpClient) {}
-
-// saveSurvey(): void {
-//   const survey = {
-//     title: 'Untitled Survey',
-//     createdAt: new Date().toISOString(),
-//     questions: this.questions
-//   };
-
-//   this.http.post('/api/surveys', survey).subscribe({
-//     next: () => alert('Survey saved!'),
-//     error: err => console.error('Error saving survey', err)
-//   });
-// }
