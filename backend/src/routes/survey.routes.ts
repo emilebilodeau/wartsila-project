@@ -103,4 +103,30 @@ router.delete("/api/surveys/:id", async (req, res: any) => {
   }
 });
 
+// get questions so they can be answered on form page
+router.get("/api/surveys/:id/questions", async (req, res: any) => {
+  const surveyId = parseInt(req.params.id);
+
+  if (isNaN(surveyId)) {
+    return res.status(400).json({ error: "Invalid survey ID" });
+  }
+
+  try {
+    // TODO: will need to fix the naming convention for question/prompt
+    // quick fix: prompt AS question, should be changed
+    const [questions] = await db.query(
+      `SELECT id, type, prompt AS question, min, max
+         FROM questions
+         WHERE survey_id = ?
+         ORDER BY question_order ASC`,
+      [surveyId]
+    );
+
+    res.json(questions);
+  } catch (err) {
+    console.error("Error fetching questions:", err);
+    res.status(500).json({ error: "Failed to fetch survey questions" });
+  }
+});
+
 export default router;

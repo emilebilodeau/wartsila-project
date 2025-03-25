@@ -1,23 +1,21 @@
+@if (form){
 <form class="survey-box" [formGroup]="form" (ngSubmit)="onSubmit()">
-  @for (question of questions; track question.id){
-  <!-- TODO: Linear -->
-  @if (question.type === 'linear'){
+  <h2>{{ surveyTitle }}</h2>
+
+  @for (question of questions; track question.id) { @if (question.type ===
+  'linear') {
   <app-linearq [question]="question" [control]="getControl(question.id)" />
-  }
-  <!-- TODO: Yes/No -->
-  @else if (question.type === 'yesno'){
+  } @else if (question.type === 'yesno') {
   <app-yesnoq [question]="question" [control]="getControl(question.id)" />
-  }
-  <!-- Text -->
-  @else if (question.type === 'text'){
+  } @else if (question.type === 'text') {
   <app-textq [question]="question" [control]="getControl(question.id)" />
-  }
-  <!-- Number -->
-  @else if (question.type === 'number'){
+  } @else if (question.type === 'number') {
   <app-numberq [question]="question" [control]="getControl(question.id)" />
   }
+
   <hr />
   }
 
   <button type="submit" [disabled]="form.invalid">Submit</button>
 </form>
+}
