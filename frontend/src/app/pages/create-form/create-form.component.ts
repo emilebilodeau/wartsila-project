@@ -49,6 +49,8 @@ export class CreateFormComponent {
     });
   }
 
+  surveyTitle = new FormControl('', Validators.required);
+
   addQuestion(): void {
     const { question, type, min, max } = this.questionForm.value;
 
@@ -71,7 +73,7 @@ export class CreateFormComponent {
 
   saveSurvey(): void {
     const survey = {
-      title: 'Untitled Survey',
+      title: this.surveyTitle.value,
       createdAt: new Date().toISOString(),
       questions: this.questions,
     };
@@ -80,3 +82,21 @@ export class CreateFormComponent {
     console.log('Survey to send to backend:', survey);
   }
 }
+
+// NOTE: sample code for when backend is ready
+// import { HttpClient } from '@angular/common/http';
+
+// constructor(private fb: FormBuilder, private http: HttpClient) {}
+
+// saveSurvey(): void {
+//   const survey = {
+//     title: 'Untitled Survey',
+//     createdAt: new Date().toISOString(),
+//     questions: this.questions
+//   };
+
+//   this.http.post('/api/surveys', survey).subscribe({
+//     next: () => alert('Survey saved!'),
+//     error: err => console.error('Error saving survey', err)
+//   });
+// }

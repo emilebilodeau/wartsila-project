@@ -4,11 +4,11 @@
   (ngSubmit)="addQuestion()"
   class="question-form"
 >
-  <label>Question:</label>
-  <input type="text" formControlName="question" />
+  <label for="question-name">Question:</label>
+  <input id="question-name" type="text" formControlName="question" />
 
-  <label>Type:</label>
-  <select formControlName="type">
+  <label for="question-type">Type:</label>
+  <select id="question-type" formControlName="type">
     @for (type of questionTypes; track type) {
     <option [value]="type">{{ type }}</option>
     }
@@ -16,11 +16,11 @@
 
   <!-- Show min/max only for linear -->
   @if (questionForm.get('type')?.value === 'linear') {
-  <label>Min:</label>
-  <input type="number" formControlName="min" />
+  <label for="linear-min">Min:</label>
+  <input id="linear-min" type="number" formControlName="min" />
 
-  <label>Max:</label>
-  <input type="number" formControlName="max" />
+  <label for="linear-max">Max:</label>
+  <input id="linear-max" type="number" formControlName="max" />
   }
 
   <button type="submit" [disabled]="questionForm.invalid">Add Question</button>
@@ -47,7 +47,14 @@
   </div>
   <hr />
   }
-  <button (click)="saveSurvey()" [disabled]="questions.length === 0">
+  <div class="title-section">
+    <label for="survey-title">Survey Title</label>
+    <input id="survey-title" type="text" [formControl]="surveyTitle" />
+  </div>
+  <button
+    (click)="saveSurvey()"
+    [disabled]="questions.length === 0 || surveyTitle.invalid"
+  >
     Save Survey
   </button>
 </div>
