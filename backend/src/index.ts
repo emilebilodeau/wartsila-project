@@ -1,7 +1,8 @@
 import express from "express";
-import mysql from "mysql2";
+import mysql from "mysql2/promise";
 import cors from "cors";
 import dotenv from "dotenv";
+import { db } from "./db";
 
 dotenv.config();
 
@@ -11,13 +12,6 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT;
-
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
 
 app.get("/", (_req, res) => {
   res.send("Survey API is running!");
