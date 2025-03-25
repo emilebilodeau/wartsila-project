@@ -3,6 +3,20 @@
     <a routerLink="/create">
       <button class="home-button">Create Survey</button>
     </a>
-    <button class="home-button">Choose Survey</button>
+    <h1>Survey Selection</h1>
+    @if (surveys.length === 0){
+    <p>please create a survey first</p>
+    }
+    <ul class="survey-list">
+      @for (survey of surveys; track survey.id) {
+      <li
+        (click)="selectSurvey(survey)"
+        [class.selected]="survey.id === selectedSurveyId"
+      >
+        <strong>{{ survey.title }}</strong>
+        <br />
+      </li>
+      }
+    </ul>
   </div>
 </div>

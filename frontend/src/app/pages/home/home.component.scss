@@ -1,3 +1,4 @@
+// home general
 .home-container {
   height: 100vh;
   display: flex;
@@ -31,4 +32,30 @@
 
 .home-button:hover {
   background-color: #303f9f;
+}
+
+// for survey selection
+.survey-list {
+  list-style: none;
+  padding: 0;
+  max-width: 600px;
+  margin: 24px auto;
+}
+
+.survey-list li {
+  padding: 16px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.survey-list li.selected {
+  border: 2px solid #3f51b5;
+  background-color: #e8eaf6;
+}
+
+.survey-list li:hover {
+  background-color: #f0f0f0;
 }

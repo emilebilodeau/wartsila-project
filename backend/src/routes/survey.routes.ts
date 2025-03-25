@@ -3,6 +3,8 @@ import { db } from "../db";
 
 const router = express.Router();
 
+// create survey endpoint
+// TODO: come back and fix type assignment later, spefically for res
 router.post("/api/surveys", async (req: any, res: any) => {
   const { title, questions } = req.body;
 
@@ -49,5 +51,31 @@ router.post("/api/surveys", async (req: any, res: any) => {
     connection.release();
   }
 });
+
+// get survey from homepage
+router.get("/api/surveys", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+        SELECT id, title, created_at
+        FROM surveys
+        ORDER BY created_at DESC
+      `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching surveys:", err);
+    res.status(500).json({ error: "Failed to fetch surveys" });
+  }
+});
+
+// TODO: when user is implemented, update the query
+// const userId = req.user.id;
+
+// const [rows] = await db.query(`
+//   SELECT id, title, created_at
+//   FROM surveys
+//   WHERE created_by = ?
+//   ORDER BY created_at DESC
+// `, [userId]);
 
 export default router;
