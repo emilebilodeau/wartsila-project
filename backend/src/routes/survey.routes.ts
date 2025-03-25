@@ -78,4 +78,29 @@ router.get("/api/surveys", async (req, res) => {
 //   ORDER BY created_at DESC
 // `, [userId]);
 
+// delete survey on homepage
+router.delete("/api/surveys/:id", async (req, res: any) => {
+  const surveyId = parseInt(req.params.id);
+
+  if (isNaN(surveyId)) {
+    return res.status(400).json({ error: "Invalid survey ID" });
+  }
+
+  try {
+    const [result] = await db.query(`DELETE FROM surveys WHERE id = ?`, [
+      surveyId,
+    ]);
+
+    const affected = (result as any).affectedRows;
+    if (affected === 0) {
+      return res.status(404).json({ error: "Survey not found" });
+    }
+
+    res.json({ message: "Survey deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting survey:", err);
+    res.status(500).json({ error: "Failed to delete survey" });
+  }
+});
+
 export default router;
