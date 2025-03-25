@@ -1,0 +1,18 @@
+<table class="data-table">
+  <thead>
+    <tr>
+      @for (column of columns; track column.key) {
+      <th>{{ column.label }}</th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of rows; track row) {
+    <tr>
+      @for (column of columns; track column.key) {
+      <td>{{ row[column.key] }}</td>
+      }
+    </tr>
+    }
+  </tbody>
+</table>
