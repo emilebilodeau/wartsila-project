@@ -176,4 +176,57 @@ router.post("/api/responses", async (req, res: any) => {
   }
 });
 
+// endpoint to get all the responses for the data table
+router.get("/api/surveys/:id/responses", async (req, res: any) => {
+  const surveyId = parseInt(req.params.id);
+  if (isNaN(surveyId)) {
+    return res.status(400).json({ error: "Invalid survey ID" });
+  }
+
+  try {
+    // 1. Get all questions for the survey
+    const [questionsRaw] = await db.query(
+      `SELECT id, prompt FROM questions WHERE survey_id = ? ORDER BY question_order`,
+      [surveyId]
+    );
+
+    // NOTE: this is a fix for the issue of "Property 'find' does not exist on type 'QueryResult'"
+    const questions = questionsRaw as { id: number; prompt: string }[];
+
+    // 2. Get all responses for the survey
+    const [rows] = await db.query(
+      `SELECT responses.id AS response_id, responses.responded_at, answers.question_id, answers.answer_text
+       FROM responses
+       JOIN answers ON responses.id = answers.response_id
+       WHERE responses.survey_id = ?
+       ORDER BY responses.id, answers.question_id`,
+      [surveyId]
+    );
+
+    // 3. Reshape results into rows like:
+    // [{ response_id, responded_at, "Question 1": "Answer", ... }]
+    const grouped: Record<number, any> = {};
+
+    for (const row of rows as any[]) {
+      const responseId = row.response_id;
+      if (!grouped[responseId]) {
+        grouped[responseId] = {
+          response_id: responseId,
+          responded_at: row.responded_at,
+        };
+      }
+
+      const question = questions.find((q: any) => q.id === row.question_id);
+      if (question) {
+        grouped[responseId][question.prompt] = row.answer_text;
+      }
+    }
+
+    res.json(Object.values(grouped));
+  } catch (err) {
+    console.error("Error fetching survey responses:", err);
+    res.status(500).json({ error: "Failed to load survey responses" });
+  }
+});
+
 export default router;
