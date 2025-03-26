@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import surveyRoutes from "./routes/survey.routes";
+import authRoutes from "./routes/auth.routes";
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 const PORT = process.env.PORT;
 
 app.use(surveyRoutes);
+app.use(authRoutes);
 
 app.get("/", (_req, res) => {
   res.send("Survey API is running!");
