@@ -8,6 +8,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { TextqComponent } from '../../components/textq/textq.component';
 import { NumberqComponent } from '../../components/numberq/numberq.component';
 import { YesnoqComponent } from '../../components/yesnoq/yesnoq.component';
@@ -30,19 +31,32 @@ export class FormComponent implements OnInit {
   form!: FormGroup;
   surveyTitle: string = '';
   loading: boolean = true;
+  // for edit mode
+  responseId: number | null = null;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {}
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    // for edit mode
+    private route: ActivatedRoute
+  ) {}
 
+  // loads questions
+  // in edit mode, also fills the form with the chosen record's data
   ngOnInit(): void {
     const survey = JSON.parse(localStorage.getItem('selectedSurvey') || '{}');
-
     if (!survey?.id) {
       alert('No survey selected.');
       return;
     }
 
     this.surveyTitle = survey.title;
+    // for edit mode; gets the id of the record to fetch answers later
+    this.responseId = parseInt(
+      this.route.snapshot.paramMap.get('responseId') || ''
+    );
 
+    // Fetch questions
     this.http
       .get<Question[]>(
         `http://localhost:8800/api/surveys/${survey.id}/questions`
@@ -51,6 +65,12 @@ export class FormComponent implements OnInit {
         next: (questions) => {
           this.questions = questions;
           this.buildForm(questions);
+
+          // If editing, load response
+          if (this.responseId) {
+            this.loadResponseAnswers(this.responseId);
+          }
+
           this.loading = false;
         },
         error: (err) => {
@@ -107,16 +127,62 @@ export class FormComponent implements OnInit {
     // NOTE: for testing, can delete later
     console.log('submitted', payload);
 
-    this.http.post('http://localhost:8800/api/responses', payload).subscribe({
-      next: (res) => {
-        console.log('Survey submitted successfully', res);
-        alert('Thanks for submitting your answers!');
-        this.form.reset();
-      },
-      error: (err) => {
-        console.error('Error submitting survey:', err);
-        alert('Failed to submit your survey. Please try again.');
-      },
-    });
+    // if editing
+    if (this.responseId) {
+      this.http
+        .put(`http://localhost:8800/api/responses/${this.responseId}`, {
+          answers,
+        })
+        .subscribe({
+          next: () => alert('Response updated!'),
+          error: () => alert('Failed to update response.'),
+        });
+      // else creating
+    } else {
+      this.http.post('http://localhost:8800/api/responses', payload).subscribe({
+        next: (res) => {
+          console.log('Survey submitted successfully', res);
+          alert('Thanks for submitting your answers!');
+          this.form.reset();
+        },
+        error: (err) => {
+          console.error('Error submitting survey:', err);
+          alert('Failed to submit your survey. Please try again.');
+        },
+      });
+    }
+  }
+
+  // loads answers for edit mode
+  loadResponseAnswers(responseId: number): void {
+    this.http
+      .get<any[]>(`http://localhost:8800/api/responses/${responseId}/answers`)
+      .subscribe({
+        next: (answers) => {
+          const patch: any = {};
+          for (const a of answers) {
+            // need to conver to correct type since all answers are stored as
+            // strings in the DB
+            const question_info = this.questions.find(
+              (obj) => obj.id === a.question_id
+            );
+            let value: any = a.answer;
+            const id = String(a.question_id);
+            if (!question_info) continue;
+            if (
+              question_info.type === 'linear' ||
+              question_info.type === 'number'
+            ) {
+              value = Number(value);
+            } else if (question_info.type === 'yesno') {
+              value = value === 'true' || value === '1';
+            }
+
+            patch[id] = value;
+          }
+          this.form.patchValue(patch);
+        },
+        error: () => alert('Failed to load response data.'),
+      });
   }
 }

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { CreateFormComponent } from './pages/create-form/create-form.component';
+import { FormComponent } from './pages/form/form.component';
 
 export const routes: Routes = [
   {
@@ -11,9 +12,7 @@ export const routes: Routes = [
   },
   {
     path: 'form',
-    loadComponent: () => {
-      return import('./pages/form/form.component').then((m) => m.FormComponent);
-    },
+    component: FormComponent,
   },
   {
     path: 'data',
@@ -24,5 +23,9 @@ export const routes: Routes = [
   {
     path: 'create',
     component: CreateFormComponent,
+  },
+  {
+    path: 'edit/:responseId',
+    component: FormComponent,
   },
 ];

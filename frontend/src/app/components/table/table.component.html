@@ -15,7 +15,7 @@
       }
       <td>
         <button (click)="deleteResponse(row.response_id)">Delete</button>
-        <button>Update</button>
+        <button [routerLink]="['/edit', row.response_id]">Update</button>
       </td>
     </tr>
     }

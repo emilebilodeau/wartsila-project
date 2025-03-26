@@ -254,4 +254,65 @@ router.delete("/api/responses/:id", async (req, res: any) => {
   }
 });
 
+// endpoint to get a record. used in the update page to prefill
+// the form values
+router.get("/api/responses/:id/answers", async (req, res: any) => {
+  const responseId = parseInt(req.params.id);
+  if (isNaN(responseId)) {
+    return res.status(400).json({ error: "Invalid response ID" });
+  }
+
+  try {
+    const [answers] = await db.query(
+      `SELECT question_id, answer_text AS answer FROM answers WHERE response_id = ?`,
+      [responseId]
+    );
+    res.json(answers);
+  } catch (err) {
+    console.error("Error loading response answers:", err);
+    res.status(500).json({ error: "Failed to fetch answers" });
+  }
+});
+
+// update endpoint. since the responses are simple, deleting the
+// the response and recreating it instead of partial updates
+router.put("/api/responses/:id", async (req, res: any) => {
+  const responseId = parseInt(req.params.id);
+  const { answers } = req.body;
+
+  if (isNaN(responseId) || !Array.isArray(answers) || answers.length === 0) {
+    return res.status(400).json({ error: "Invalid payload" });
+  }
+
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Delete existing answers
+    await connection.query(`DELETE FROM answers WHERE response_id = ?`, [
+      responseId,
+    ]);
+
+    // 2. Insert updated answers
+    const insertPromises = answers.map((ans: any) =>
+      connection.query(
+        `INSERT INTO answers (response_id, question_id, answer_text, created_at)
+         VALUES (?, ?, ?, NOW())`,
+        [responseId, ans.question_id, String(ans.answer)]
+      )
+    );
+
+    await Promise.all(insertPromises);
+
+    await connection.commit();
+    res.json({ message: "Response updated" });
+  } catch (err) {
+    await connection.rollback();
+    console.error("Error updating response:", err);
+    res.status(500).json({ error: "Failed to update response" });
+  } finally {
+    connection.release();
+  }
+});
+
 export default router;

@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 
 interface Column {
   key: string;
@@ -8,7 +9,7 @@ interface Column {
 
 @Component({
   selector: 'app-table',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './table.component.html',
   styleUrl: './table.component.scss',
 })
