@@ -229,4 +229,29 @@ router.get("/api/surveys/:id/responses", async (req, res: any) => {
   }
 });
 
+// deletes a response and its answers; aka a row from the data table
+router.delete("/api/responses/:id", async (req, res: any) => {
+  const responseId = parseInt(req.params.id);
+
+  if (isNaN(responseId)) {
+    return res.status(400).json({ error: "Invalid response ID" });
+  }
+
+  try {
+    const [result] = await db.query(`DELETE FROM responses WHERE id = ?`, [
+      responseId,
+    ]);
+
+    const affected = (result as any).affectedRows;
+    if (affected === 0) {
+      return res.status(404).json({ error: "Response not found" });
+    }
+
+    res.json({ message: "Response deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting response:", err);
+    res.status(500).json({ error: "Failed to delete response" });
+  }
+});
+
 export default router;

@@ -14,7 +14,7 @@
       <td>{{ row[column.key] }}</td>
       }
       <td>
-        <button>Delete</button>
+        <button (click)="deleteResponse(row.response_id)">Delete</button>
         <button>Update</button>
       </td>
     </tr>

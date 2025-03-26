@@ -8,6 +8,8 @@ import { TableComponent } from '../../components/table/table.component';
   templateUrl: './data.component.html',
   styleUrl: './data.component.scss',
 })
+
+// NOTE: this still works without "implements OnInit"; look into why
 export class DataComponent {
   // TODO: include a different render if there is no answers
   columns: { key: string; label: string }[] = [];
