@@ -78,6 +78,34 @@ router.get("/api/surveys", async (req, res) => {
 //   ORDER BY created_at DESC
 // `, [userId]);
 
+// gets an individual survey, made for the survey state on...
+// ... refresh or direct nagivation
+router.get("/api/surveys/:id", async (req, res: any) => {
+  const surveyId = parseInt(req.params.id);
+
+  if (isNaN(surveyId)) {
+    return res.status(400).json({ error: "Invalid survey ID" });
+  }
+
+  try {
+    const [rows] = await db.query(
+      `SELECT id, title, created_at FROM surveys WHERE id = ?`,
+      [surveyId]
+    );
+
+    const survey = (rows as any)[0];
+
+    if (!survey) {
+      return res.status(404).json({ error: "Survey not found" });
+    }
+
+    res.json(survey);
+  } catch (err) {
+    console.error("Error retrieving survey:", err);
+    res.status(500).json({ error: "Failed to retrieve survey" });
+  }
+});
+
 // delete survey on homepage
 router.delete("/api/surveys/:id", async (req, res: any) => {
   const surveyId = parseInt(req.params.id);
@@ -185,6 +213,8 @@ router.get("/api/surveys/:id/responses", async (req, res: any) => {
 
   try {
     // 1. Get all questions for the survey
+    // TODO: verify the prompt column; this attribute is called...
+    // ... question in the frontend
     const [questionsRaw] = await db.query(
       `SELECT id, prompt FROM questions WHERE survey_id = ? ORDER BY question_order`,
       [surveyId]

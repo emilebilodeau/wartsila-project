@@ -11,11 +11,11 @@ export const routes: Routes = [
     },
   },
   {
-    path: 'form',
+    path: 'form/:surveyId',
     component: FormComponent,
   },
   {
-    path: 'data',
+    path: 'data/:surveyId',
     loadComponent: () => {
       return import('./pages/data/data.component').then((m) => m.DataComponent);
     },
@@ -25,7 +25,7 @@ export const routes: Routes = [
     component: CreateFormComponent,
   },
   {
-    path: 'edit/:responseId',
+    path: 'edit/:surveyId/:responseId',
     component: FormComponent,
   },
 ];

@@ -1,12 +1,8 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-
-interface Survey {
-  id: number;
-  title: string;
-  created_at: string;
-}
+import { SurveyStateService } from '../../state/survey-state.service';
+import { Survey } from '../../models/survey.model';
 
 @Component({
   selector: 'app-home',
@@ -18,7 +14,10 @@ export class HomeComponent {
   surveys: Survey[] = [];
   selectedSurveyId: number | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private surveyState: SurveyStateService
+  ) {}
 
   // TODO: come back to this ngOnInit(). behaviour looks different...
   //... than in the form page component
@@ -26,11 +25,10 @@ export class HomeComponent {
     this.http.get<Survey[]>('http://localhost:8800/api/surveys').subscribe({
       next: (data) => {
         this.surveys = data;
-        const stored = localStorage.getItem('selectedSurvey');
+        const stored = this.surveyState.getCurrentSurveyId();
         // pre selects survey if previously selected
         if (stored) {
-          const parsed = JSON.parse(stored);
-          this.selectedSurveyId = parsed.id;
+          this.selectedSurveyId = stored;
         }
       },
       error: (err) => console.error('Failed to fetch surveys', err),
@@ -39,7 +37,7 @@ export class HomeComponent {
 
   selectSurvey(survey: Survey) {
     this.selectedSurveyId = survey.id;
-    localStorage.setItem('selectedSurvey', JSON.stringify(survey));
+    this.surveyState.setSurvey(survey);
   }
 
   deleteSurvey(id: number): void {
@@ -54,7 +52,7 @@ export class HomeComponent {
         // If the deleted survey was selected, clear it
         if (this.selectedSurveyId === id) {
           this.selectedSurveyId = null;
-          localStorage.removeItem('selectedSurvey');
+          this.surveyState.setSurvey(null);
         }
 
         alert('Survey deleted.');
