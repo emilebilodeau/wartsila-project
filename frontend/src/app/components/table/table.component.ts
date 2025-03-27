@@ -16,6 +16,7 @@ interface Column {
 export class TableComponent {
   @Input() columns: Column[] = [];
   @Input() rows: any[] = [];
+  @Input() surveyId: number | null = null;
 
   constructor(private http: HttpClient) {}
 
