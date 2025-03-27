@@ -19,14 +19,24 @@ header {
         color: #777;
       }
     }
-
     ul {
       list-style: none;
+      display: flex;
+      gap: 16px;
 
       li {
         cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+
         &:hover {
-          color: #777;
+          color: #ccc;
+        }
+
+        &.active {
+          background-color: #555; // lighter than the navbar background
+          color: white;
         }
       }
     }
