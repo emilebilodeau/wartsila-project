@@ -2,9 +2,6 @@ import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SurveyStateService } from '../../state/survey-state.service';
 import { Survey } from '../../models/survey.model';
-{
-  RouterLinkActive;
-}
 
 @Component({
   selector: 'app-navbar',
