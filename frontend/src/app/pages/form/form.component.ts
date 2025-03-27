@@ -100,14 +100,9 @@ export class FormComponent implements OnInit {
     const formGroup: { [key: string]: FormControl } = {};
 
     for (const q of questions) {
-      // NOTE: might not need this default value
-      const defaultValue = q.type === 'linear' || q.type === 'number' ? 0 : '';
       // NOTE: be careful with ids: in the backend they're int, but right now
       // the implementation requires them to be string
-      formGroup[String(q.id)] = this.fb.control(
-        defaultValue,
-        Validators.required
-      );
+      formGroup[String(q.id)] = this.fb.control('', Validators.required);
     }
 
     this.form = this.fb.group(formGroup);
