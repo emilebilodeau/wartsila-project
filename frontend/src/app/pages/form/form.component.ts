@@ -32,6 +32,7 @@ export class FormComponent implements OnInit {
   questions: Question[] = [];
   form!: FormGroup;
   surveyTitle: string | null = '';
+  surveyId: number | null = null;
   loading: boolean = true;
   // for edit mode
   responseId: number | null = null;
@@ -40,7 +41,7 @@ export class FormComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private surveyState: SurveyStateService,
-    // for edit mode, and to retrieve survey edit in answer mode
+    // for edit mode, and to retrieve survey id in answer mode
     private route: ActivatedRoute
   ) {}
 
@@ -50,6 +51,7 @@ export class FormComponent implements OnInit {
     const survey_id = parseInt(
       this.route.snapshot.paramMap.get('surveyId') || ''
     );
+    this.surveyId = survey_id;
     // this uses the surveyId to re-set the state if directly navigating...
     // ... to the page or on hard refresh
     if (
@@ -120,9 +122,7 @@ export class FormComponent implements OnInit {
   onSubmit(): void {
     if (!this.form.valid) return;
 
-    const survey = JSON.parse(localStorage.getItem('selectedSurvey') || '{}');
-
-    if (!survey?.id) {
+    if (!this.surveyId) {
       alert('No survey selected.');
       return;
     }
@@ -134,7 +134,7 @@ export class FormComponent implements OnInit {
     }));
 
     const payload = {
-      survey_id: survey.id,
+      survey_id: this.surveyId,
       answers,
     };
 

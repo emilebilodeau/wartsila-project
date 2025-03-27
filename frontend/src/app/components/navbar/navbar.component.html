@@ -4,7 +4,7 @@
     <ul>
       @if (selectedSurvey !== null){
       <li [routerLink]="['/form', surveyId]">Answer Survey</li>
-      <li routerLink="/data">Responses</li>
+      <li [routerLink]="['/data', surveyId]">Responses</li>
       } @else {
       <li (click)="handleNoSurvey()">Answer Survey</li>
       <li (click)="handleNoSurvey()">Responses</li>

@@ -15,7 +15,7 @@ export const routes: Routes = [
     component: FormComponent,
   },
   {
-    path: 'data',
+    path: 'data/:surveyId',
     loadComponent: () => {
       return import('./pages/data/data.component').then((m) => m.DataComponent);
     },

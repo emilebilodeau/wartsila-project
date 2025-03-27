@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TableComponent } from '../../components/table/table.component';
+import { SurveyStateService } from '../../state/survey-state.service';
+import { ActivatedRoute } from '@angular/router';
+import { Survey } from '../../models/survey.model';
 
 @Component({
   selector: 'app-data',
@@ -15,14 +18,30 @@ export class DataComponent {
   columns: { key: string; label: string }[] = [];
   rows: any[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    // to retrieve survey id in answer mode and re-set survey state
+    private surveyState: SurveyStateService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
-    const survey = JSON.parse(localStorage.getItem('selectedSurvey') || '{}');
-    if (!survey?.id) return;
+    const survey_id = parseInt(
+      this.route.snapshot.paramMap.get('surveyId') || ''
+    );
+    // this uses the surveyId to re-set the state if directly navigating...
+    // ... to the page or on hard refresh
+    if (
+      !this.surveyState.getCurrentSurvey() ||
+      this.surveyState.getCurrentSurvey()?.id !== survey_id
+    ) {
+      this.http
+        .get<Survey>(`http://localhost:8800/api/surveys/${survey_id}`)
+        .subscribe((survey) => this.surveyState.setSurvey(survey));
+    }
 
     this.http
-      .get<any[]>(`http://localhost:8800/api/surveys/${survey.id}/responses`)
+      .get<any[]>(`http://localhost:8800/api/surveys/${survey_id}/responses`)
       .subscribe({
         next: (data) => {
           if (data.length > 0) {
