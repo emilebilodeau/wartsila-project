@@ -25,7 +25,7 @@ export const routes: Routes = [
     component: CreateFormComponent,
   },
   {
-    path: 'edit/:responseId',
+    path: 'edit/:surveyId/:responseId',
     component: FormComponent,
   },
 ];

@@ -17,6 +17,7 @@ export class DataComponent {
   // TODO: include a different render if there is no answers
   columns: { key: string; label: string }[] = [];
   rows: any[] = [];
+  surveyId: number | null = null;
 
   constructor(
     private http: HttpClient,
@@ -29,6 +30,7 @@ export class DataComponent {
     const survey_id = parseInt(
       this.route.snapshot.paramMap.get('surveyId') || ''
     );
+    this.surveyId = survey_id;
     // this uses the surveyId to re-set the state if directly navigating...
     // ... to the page or on hard refresh
     if (
