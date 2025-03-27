@@ -6,7 +6,7 @@
     <div>
       <h1 class="survey-header">Survey Selection</h1>
       @if (surveys.length === 0){
-      <p>please create a survey first</p>
+      <p class="survey-header">please create a survey first</p>
       }
       <ul class="survey-list">
         @for (survey of surveys; track survey.id) {
