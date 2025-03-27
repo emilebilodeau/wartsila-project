@@ -1,3 +1,6 @@
 <div class="table-container">
-  <app-table [columns]="columns" [rows]="rows" [surveyId]="surveyId" />
+  @if (columns.length!== 0){
+  <app-table [columns]="columns" [rows]="rows" [surveyId]="surveyId" />} @else {
+  <p>No answers to display; please complete a survey!</p>
+  }
 </div>

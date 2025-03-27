@@ -3,24 +3,28 @@
     <a routerLink="/create">
       <button class="home-button">Create Survey</button>
     </a>
-    <!--TODO: come back to style this better later -->
-    <h1>Survey Selection</h1>
-    @if (surveys.length === 0){
-    <p>please create a survey first</p>
-    }
-    <ul class="survey-list">
-      @for (survey of surveys; track survey.id) {
-      <li
-        (click)="selectSurvey(survey)"
-        [class.selected]="survey.id === selectedSurveyId"
-      >
-        <strong>{{ survey.title }}</strong>
-        <br />
-        <button class="delete-btn" (click)="deleteSurvey(survey.id)">
-          Delete
-        </button>
-      </li>
+    <div>
+      <h1 class="survey-header">Survey Selection</h1>
+      @if (surveys.length === 0){
+      <p class="survey-header">please create a survey first</p>
       }
-    </ul>
+      <ul class="survey-list">
+        @for (survey of surveys; track survey.id) {
+        <li
+          (click)="selectSurvey(survey)"
+          [class.selected]="survey.id === selectedSurveyId"
+          class="survey-item"
+        >
+          <strong>{{ survey.title }}</strong>
+          <button
+            class="delete-btn"
+            (click)="deleteSurvey(survey.id); $event.stopPropagation()"
+          >
+            Delete
+          </button>
+        </li>
+        }
+      </ul>
+    </div>
   </div>
 </div>
