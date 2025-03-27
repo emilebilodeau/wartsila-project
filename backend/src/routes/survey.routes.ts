@@ -185,6 +185,8 @@ router.get("/api/surveys/:id/responses", async (req, res: any) => {
 
   try {
     // 1. Get all questions for the survey
+    // TODO: verify the prompt column; this attribute is called...
+    // ... question in the frontend
     const [questionsRaw] = await db.query(
       `SELECT id, prompt FROM questions WHERE survey_id = ? ORDER BY question_order`,
       [surveyId]

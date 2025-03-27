@@ -2,8 +2,13 @@
   <nav>
     <h1 routerLink="/">Home</h1>
     <ul>
-      <li routerLink="/form">Form</li>
+      @if (selectedSurvey !== null){
+      <li [routerLink]="['/form', surveyId]">Form</li>
       <li routerLink="/data">Data</li>
+      } @else {
+      <li (click)="handleNoSurvey()">Form</li>
+      <li (click)="handleNoSurvey()">Data</li>
+      }
     </ul>
   </nav>
 </header>
