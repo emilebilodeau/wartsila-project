@@ -9,6 +9,8 @@ import {
 } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
+import { Survey } from '../../models/survey.model';
+import { SurveyStateService } from '../../state/survey-state.service';
 import { TextqComponent } from '../../components/textq/textq.component';
 import { NumberqComponent } from '../../components/numberq/numberq.component';
 import { YesnoqComponent } from '../../components/yesnoq/yesnoq.component';
@@ -29,7 +31,7 @@ import { LinearqComponent } from '../../components/linearq/linearq.component';
 export class FormComponent implements OnInit {
   questions: Question[] = [];
   form!: FormGroup;
-  surveyTitle: string = '';
+  surveyTitle: string | null = '';
   loading: boolean = true;
   // for edit mode
   responseId: number | null = null;
@@ -37,20 +39,32 @@ export class FormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    // for edit mode
+    private surveyState: SurveyStateService,
+    // for edit mode, and to retrieve survey edit in answer mode
     private route: ActivatedRoute
   ) {}
 
   // loads questions
   // in edit mode, also fills the form with the chosen record's data
   ngOnInit(): void {
-    const survey = JSON.parse(localStorage.getItem('selectedSurvey') || '{}');
-    if (!survey?.id) {
-      alert('No survey selected.');
-      return;
+    const survey_id = parseInt(
+      this.route.snapshot.paramMap.get('surveyId') || ''
+    );
+    // this uses the surveyId to re-set the state if directly navigating...
+    // ... to the page or on hard refresh
+    if (
+      !this.surveyState.getCurrentSurvey() ||
+      this.surveyState.getCurrentSurvey()?.id !== survey_id
+    ) {
+      this.http
+        .get<Survey>(`http://localhost:8800/api/surveys/${survey_id}`)
+        .subscribe((survey) => this.surveyState.setSurvey(survey));
     }
+    // TODO: come back to this. was losing the survey title upon refresh
+    this.surveyState.getSurvey$().subscribe((survey) => {
+      this.surveyTitle = survey?.title ?? null;
+    });
 
-    this.surveyTitle = survey.title;
     // for edit mode; gets the id of the record to fetch answers later
     this.responseId = parseInt(
       this.route.snapshot.paramMap.get('responseId') || ''
@@ -59,7 +73,7 @@ export class FormComponent implements OnInit {
     // Fetch questions
     this.http
       .get<Question[]>(
-        `http://localhost:8800/api/surveys/${survey.id}/questions`
+        `http://localhost:8800/api/surveys/${survey_id}/questions`
       )
       .subscribe({
         next: (questions) => {

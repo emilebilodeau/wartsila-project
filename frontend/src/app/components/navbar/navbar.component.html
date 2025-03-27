@@ -3,11 +3,11 @@
     <h1 routerLink="/">Home</h1>
     <ul>
       @if (selectedSurvey !== null){
-      <li [routerLink]="['/form', surveyId]">Form</li>
-      <li routerLink="/data">Data</li>
+      <li [routerLink]="['/form', surveyId]">Answer Survey</li>
+      <li routerLink="/data">Responses</li>
       } @else {
-      <li (click)="handleNoSurvey()">Form</li>
-      <li (click)="handleNoSurvey()">Data</li>
+      <li (click)="handleNoSurvey()">Answer Survey</li>
+      <li (click)="handleNoSurvey()">Responses</li>
       }
     </ul>
   </nav>

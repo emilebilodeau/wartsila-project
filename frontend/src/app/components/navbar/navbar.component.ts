@@ -12,7 +12,6 @@ import { Survey } from '../../models/survey.model';
 export class NavbarComponent {
   selectedSurvey: Survey | null = null;
   surveyId: number | null = null;
-  surveyTitle: string | null = null;
 
   constructor(private surveyState: SurveyStateService) {}
 
@@ -20,7 +19,6 @@ export class NavbarComponent {
     this.surveyState.getSurvey$().subscribe((survey) => {
       this.selectedSurvey = survey;
       this.surveyId = survey?.id ?? null;
-      this.surveyTitle = survey?.title ?? null;
     });
   }
 
