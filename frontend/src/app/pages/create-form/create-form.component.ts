@@ -7,6 +7,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { TextqComponent } from '../../components/textq/textq.component';
 import { NumberqComponent } from '../../components/numberq/numberq.component';
 import { LinearqComponent } from '../../components/linearq/linearq.component';
@@ -40,7 +41,11 @@ export class CreateFormComponent {
   // ... during survey creation
   previewControl = new FormControl();
 
-  constructor(private http: HttpClient, private fb: FormBuilder) {
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+    private fb: FormBuilder
+  ) {
     this.questionForm = this.fb.group({
       question: ['', Validators.required],
       type: ['text', Validators.required],
@@ -81,9 +86,7 @@ export class CreateFormComponent {
       next: (res) => {
         console.log('Survey created:', res);
         alert('Survey created!');
-        // Optionally reset form
-        this.surveyTitle.reset();
-        this.questions = [];
+        this.router.navigate(['/']);
       },
       error: (err) => {
         console.error('Failed to create survey', err);

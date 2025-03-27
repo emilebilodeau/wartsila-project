@@ -11,7 +11,7 @@ export const routes: Routes = [
     },
   },
   {
-    path: 'form/:surveyId',
+    path: 'survey/:surveyId',
     component: FormComponent,
   },
   {

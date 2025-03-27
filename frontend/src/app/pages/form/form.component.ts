@@ -8,7 +8,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Survey } from '../../models/survey.model';
 import { SurveyStateService } from '../../state/survey-state.service';
 import { TextqComponent } from '../../components/textq/textq.component';
@@ -38,6 +38,7 @@ export class FormComponent implements OnInit {
   responseId: number | null = null;
 
   constructor(
+    private router: Router,
     private fb: FormBuilder,
     private http: HttpClient,
     private surveyState: SurveyStateService,
@@ -100,14 +101,9 @@ export class FormComponent implements OnInit {
     const formGroup: { [key: string]: FormControl } = {};
 
     for (const q of questions) {
-      // NOTE: might not need this default value
-      const defaultValue = q.type === 'linear' || q.type === 'number' ? 0 : '';
       // NOTE: be careful with ids: in the backend they're int, but right now
       // the implementation requires them to be string
-      formGroup[String(q.id)] = this.fb.control(
-        defaultValue,
-        Validators.required
-      );
+      formGroup[String(q.id)] = this.fb.control('', Validators.required);
     }
 
     this.form = this.fb.group(formGroup);
@@ -148,7 +144,10 @@ export class FormComponent implements OnInit {
           answers,
         })
         .subscribe({
-          next: () => alert('Response updated!'),
+          next: () => {
+            alert('Response updated!');
+            this.router.navigate([`/data/${this.surveyId}`]);
+          },
           error: () => alert('Failed to update response.'),
         });
       // else creating
@@ -157,7 +156,7 @@ export class FormComponent implements OnInit {
         next: (res) => {
           console.log('Survey submitted successfully', res);
           alert('Thanks for submitting your answers!');
-          this.form.reset();
+          this.router.navigate(['/']);
         },
         error: (err) => {
           console.error('Error submitting survey:', err);
