@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { CreateFormComponent } from './pages/create-form/create-form.component';
 import { FormComponent } from './pages/form/form.component';
+import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
 
 export const routes: Routes = [
   {
@@ -28,4 +30,6 @@ export const routes: Routes = [
     path: 'edit/:surveyId/:responseId',
     component: FormComponent,
   },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
 ];
