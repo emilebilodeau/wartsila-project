@@ -1,6 +1,12 @@
 import express from "express";
 import { Request } from "express";
 import { db } from "../db";
+// decided to protect all routes since surveys are meant
+// to be private for now
+import {
+  authenticateToken,
+  AuthenticatedRequest,
+} from "../middleware/auth.middleware";
 
 const router = express.Router();
 
@@ -8,66 +14,74 @@ const router = express.Router();
 type LooseResponse = any;
 
 // create survey endpoint
-router.post("/api/surveys", async (req: Request, res: LooseResponse) => {
-  const { title, questions } = req.body;
+router.post(
+  "/api/surveys",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
+    const { title, questions } = req.body;
 
-  if (!title || !Array.isArray(questions) || questions.length === 0) {
-    return res.status(400).json({ error: "Invalid survey payload" });
-  }
+    if (!title || !Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ error: "Invalid survey payload" });
+    }
 
-  const connection = await db.getConnection();
-  try {
-    await connection.beginTransaction();
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
 
-    // 1. Insert the survey
-    const [surveyResult] = await connection.query(
-      `INSERT INTO surveys (title, created_at) VALUES (?, NOW())`,
-      [title]
-    );
-    const surveyId = (surveyResult as any).insertId;
+      // 1. Insert the survey
+      const [surveyResult] = await connection.query(
+        `INSERT INTO surveys (title, created_at) VALUES (?, NOW())`,
+        [title]
+      );
+      const surveyId = (surveyResult as any).insertId;
 
-    // 2. Bulk insert questions
-    const values = questions.map((q, index) => [
-      surveyId,
-      q.type,
-      q.question,
-      q.type === "linear" ? q.min : null,
-      q.type === "linear" ? q.max : null,
-      index + 1,
-    ]);
+      // 2. Bulk insert questions
+      const values = questions.map((q, index) => [
+        surveyId,
+        q.type,
+        q.question,
+        q.type === "linear" ? q.min : null,
+        q.type === "linear" ? q.max : null,
+        index + 1,
+      ]);
 
-    await connection.query(
-      `INSERT INTO questions (survey_id, type, prompt, min, max, question_order)
+      await connection.query(
+        `INSERT INTO questions (survey_id, type, prompt, min, max, question_order)
        VALUES ${values.map(() => "(?, ?, ?, ?, ?, ?)").join(", ")}`,
-      values.flat()
-    );
+        values.flat()
+      );
 
-    await connection.commit();
-    res.status(201).json({ message: "Survey created", surveyId });
-  } catch (error) {
-    await connection.rollback();
-    console.error("Error creating survey:", error);
-    res.status(500).json({ error: "Failed to create survey" });
-  } finally {
-    connection.release();
+      await connection.commit();
+      res.status(201).json({ message: "Survey created", surveyId });
+    } catch (error) {
+      await connection.rollback();
+      console.error("Error creating survey:", error);
+      res.status(500).json({ error: "Failed to create survey" });
+    } finally {
+      connection.release();
+    }
   }
-});
+);
 
 // get survey from homepage
-router.get("/api/surveys", async (req: Request, res: LooseResponse) => {
-  try {
-    const [rows] = await db.query(`
+router.get(
+  "/api/surveys",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
+    try {
+      const [rows] = await db.query(`
         SELECT id, title, created_at
         FROM surveys
         ORDER BY created_at DESC
       `);
 
-    res.json(rows);
-  } catch (err) {
-    console.error("Error fetching surveys:", err);
-    res.status(500).json({ error: "Failed to fetch surveys" });
+      res.json(rows);
+    } catch (err) {
+      console.error("Error fetching surveys:", err);
+      res.status(500).json({ error: "Failed to fetch surveys" });
+    }
   }
-});
+);
 
 // TODO: when user is implemented, update the query
 // const userId = req.user.id;
@@ -81,61 +95,70 @@ router.get("/api/surveys", async (req: Request, res: LooseResponse) => {
 
 // gets an individual survey, made for the survey state on...
 // ... refresh or direct nagivation
-router.get("/api/surveys/:id", async (req: Request, res: LooseResponse) => {
-  const surveyId = parseInt(req.params.id);
+router.get(
+  "/api/surveys/:id",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
+    const surveyId = parseInt(req.params.id);
 
-  if (isNaN(surveyId)) {
-    return res.status(400).json({ error: "Invalid survey ID" });
-  }
-
-  try {
-    const [rows] = await db.query(
-      `SELECT id, title, created_at FROM surveys WHERE id = ?`,
-      [surveyId]
-    );
-
-    const survey = (rows as any)[0];
-
-    if (!survey) {
-      return res.status(404).json({ error: "Survey not found" });
+    if (isNaN(surveyId)) {
+      return res.status(400).json({ error: "Invalid survey ID" });
     }
 
-    res.json(survey);
-  } catch (err) {
-    console.error("Error retrieving survey:", err);
-    res.status(500).json({ error: "Failed to retrieve survey" });
+    try {
+      const [rows] = await db.query(
+        `SELECT id, title, created_at FROM surveys WHERE id = ?`,
+        [surveyId]
+      );
+
+      const survey = (rows as any)[0];
+
+      if (!survey) {
+        return res.status(404).json({ error: "Survey not found" });
+      }
+
+      res.json(survey);
+    } catch (err) {
+      console.error("Error retrieving survey:", err);
+      res.status(500).json({ error: "Failed to retrieve survey" });
+    }
   }
-});
+);
 
 // delete survey on homepage
-router.delete("/api/surveys/:id", async (req: Request, res: LooseResponse) => {
-  const surveyId = parseInt(req.params.id);
+router.delete(
+  "/api/surveys/:id",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
+    const surveyId = parseInt(req.params.id);
 
-  if (isNaN(surveyId)) {
-    return res.status(400).json({ error: "Invalid survey ID" });
-  }
-
-  try {
-    const [result] = await db.query(`DELETE FROM surveys WHERE id = ?`, [
-      surveyId,
-    ]);
-
-    const affected = (result as any).affectedRows;
-    if (affected === 0) {
-      return res.status(404).json({ error: "Survey not found" });
+    if (isNaN(surveyId)) {
+      return res.status(400).json({ error: "Invalid survey ID" });
     }
 
-    res.json({ message: "Survey deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting survey:", err);
-    res.status(500).json({ error: "Failed to delete survey" });
+    try {
+      const [result] = await db.query(`DELETE FROM surveys WHERE id = ?`, [
+        surveyId,
+      ]);
+
+      const affected = (result as any).affectedRows;
+      if (affected === 0) {
+        return res.status(404).json({ error: "Survey not found" });
+      }
+
+      res.json({ message: "Survey deleted successfully" });
+    } catch (err) {
+      console.error("Error deleting survey:", err);
+      res.status(500).json({ error: "Failed to delete survey" });
+    }
   }
-});
+);
 
 // get questions so they can be answered on form page
 router.get(
   "/api/surveys/:id/questions",
-  async (req: Request, res: LooseResponse) => {
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
     const surveyId = parseInt(req.params.id);
 
     if (isNaN(surveyId)) {
@@ -162,55 +185,60 @@ router.get(
 );
 
 // submit answer endpoint for a form
-router.post("/api/responses", async (req: Request, res: LooseResponse) => {
-  const { survey_id, answers } = req.body;
+router.post(
+  "/api/responses",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
+    const { survey_id, answers } = req.body;
 
-  if (!survey_id || !Array.isArray(answers) || answers.length === 0) {
-    return res.status(400).json({ error: "Invalid response payload" });
-  }
+    if (!survey_id || !Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({ error: "Invalid response payload" });
+    }
 
-  const connection = await db.getConnection();
-  try {
-    await connection.beginTransaction();
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
 
-    // 1. Create a new response
-    const [responseResult] = await connection.query(
-      `INSERT INTO responses (survey_id, responded_at) VALUES (?, NOW())`,
-      [survey_id]
-    );
-    const responseId = (responseResult as any).insertId;
+      // 1. Create a new response
+      const [responseResult] = await connection.query(
+        `INSERT INTO responses (survey_id, responded_at) VALUES (?, NOW())`,
+        [survey_id]
+      );
+      const responseId = (responseResult as any).insertId;
 
-    // TODO: double check this
-    // 2. Bulk insert answers
-    const values = answers.map((ans) => [
-      responseId,
-      ans.question_id,
-      String(ans.answer),
-    ]);
+      // TODO: double check this
+      // 2. Bulk insert answers
+      const values = answers.map((ans) => [
+        responseId,
+        ans.question_id,
+        String(ans.answer),
+      ]);
 
-    await connection.query(
-      `INSERT INTO answers (response_id, question_id, answer_text, created_at)
+      await connection.query(
+        `INSERT INTO answers (response_id, question_id, answer_text, created_at)
        VALUES ${values.map(() => "(?, ?, ?, NOW())").join(", ")}`,
-      values.flat()
-    );
+        values.flat()
+      );
 
-    await connection.commit();
-    res
-      .status(201)
-      .json({ message: "Response saved", response_id: responseId });
-  } catch (err) {
-    await connection.rollback();
-    console.error("Error saving survey response:", err);
-    res.status(500).json({ error: "Failed to save survey response" });
-  } finally {
-    connection.release();
+      await connection.commit();
+      res
+        .status(201)
+        .json({ message: "Response saved", response_id: responseId });
+    } catch (err) {
+      await connection.rollback();
+      console.error("Error saving survey response:", err);
+      res.status(500).json({ error: "Failed to save survey response" });
+    } finally {
+      connection.release();
+    }
   }
-});
+);
 
 // endpoint to get all the responses for the data table
 router.get(
   "/api/surveys/:id/responses",
-  async (req: Request, res: LooseResponse) => {
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
     const surveyId = parseInt(req.params.id);
     if (isNaN(surveyId)) {
       return res.status(400).json({ error: "Invalid survey ID" });
@@ -268,7 +296,8 @@ router.get(
 // deletes a response and its answers; aka a row from the data table
 router.delete(
   "/api/responses/:id",
-  async (req: Request, res: LooseResponse) => {
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
     const responseId = parseInt(req.params.id);
 
     if (isNaN(responseId)) {
@@ -297,7 +326,8 @@ router.delete(
 // the form values
 router.get(
   "/api/responses/:id/answers",
-  async (req: Request, res: LooseResponse) => {
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
     const responseId = parseInt(req.params.id);
     if (isNaN(responseId)) {
       return res.status(400).json({ error: "Invalid response ID" });
@@ -318,44 +348,48 @@ router.get(
 
 // update endpoint. since the responses are simple, deleting the
 // the response and recreating it instead of partial updates
-router.put("/api/responses/:id", async (req: Request, res: LooseResponse) => {
-  const responseId = parseInt(req.params.id);
-  const { answers } = req.body;
+router.put(
+  "/api/responses/:id",
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: LooseResponse) => {
+    const responseId = parseInt(req.params.id);
+    const { answers } = req.body;
 
-  if (isNaN(responseId) || !Array.isArray(answers) || answers.length === 0) {
-    return res.status(400).json({ error: "Invalid payload" });
-  }
+    if (isNaN(responseId) || !Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({ error: "Invalid payload" });
+    }
 
-  const connection = await db.getConnection();
-  try {
-    await connection.beginTransaction();
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
 
-    // 1. Delete existing answers
-    await connection.query(`DELETE FROM answers WHERE response_id = ?`, [
-      responseId,
-    ]);
+      // 1. Delete existing answers
+      await connection.query(`DELETE FROM answers WHERE response_id = ?`, [
+        responseId,
+      ]);
 
-    // NOTE: needs optimization
-    // 2. Insert updated answers
-    const insertPromises = answers.map((ans: any) =>
-      connection.query(
-        `INSERT INTO answers (response_id, question_id, answer_text, created_at)
+      // NOTE: needs optimization
+      // 2. Insert updated answers
+      const insertPromises = answers.map((ans: any) =>
+        connection.query(
+          `INSERT INTO answers (response_id, question_id, answer_text, created_at)
          VALUES (?, ?, ?, NOW())`,
-        [responseId, ans.question_id, String(ans.answer)]
-      )
-    );
+          [responseId, ans.question_id, String(ans.answer)]
+        )
+      );
 
-    await Promise.all(insertPromises);
+      await Promise.all(insertPromises);
 
-    await connection.commit();
-    res.json({ message: "Response updated" });
-  } catch (err) {
-    await connection.rollback();
-    console.error("Error updating response:", err);
-    res.status(500).json({ error: "Failed to update response" });
-  } finally {
-    connection.release();
+      await connection.commit();
+      res.json({ message: "Response updated" });
+    } catch (err) {
+      await connection.rollback();
+      console.error("Error updating response:", err);
+      res.status(500).json({ error: "Failed to update response" });
+    } finally {
+      connection.release();
+    }
   }
-});
+);
 
 export default router;
