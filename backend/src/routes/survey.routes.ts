@@ -1,11 +1,14 @@
 import express from "express";
+import { Request } from "express";
 import { db } from "../db";
 
 const router = express.Router();
 
+// very very persistent bug with res:Response not working
+type LooseResponse = any;
+
 // create survey endpoint
-// TODO: come back and fix type assignment later, spefically for res
-router.post("/api/surveys", async (req: any, res: any) => {
+router.post("/api/surveys", async (req: Request, res: LooseResponse) => {
   const { title, questions } = req.body;
 
   if (!title || !Array.isArray(questions) || questions.length === 0) {
@@ -51,7 +54,7 @@ router.post("/api/surveys", async (req: any, res: any) => {
 });
 
 // get survey from homepage
-router.get("/api/surveys", async (req, res) => {
+router.get("/api/surveys", async (req: Request, res: LooseResponse) => {
   try {
     const [rows] = await db.query(`
         SELECT id, title, created_at
@@ -78,7 +81,7 @@ router.get("/api/surveys", async (req, res) => {
 
 // gets an individual survey, made for the survey state on...
 // ... refresh or direct nagivation
-router.get("/api/surveys/:id", async (req, res: any) => {
+router.get("/api/surveys/:id", async (req: Request, res: LooseResponse) => {
   const surveyId = parseInt(req.params.id);
 
   if (isNaN(surveyId)) {
@@ -105,7 +108,7 @@ router.get("/api/surveys/:id", async (req, res: any) => {
 });
 
 // delete survey on homepage
-router.delete("/api/surveys/:id", async (req, res: any) => {
+router.delete("/api/surveys/:id", async (req: Request, res: LooseResponse) => {
   const surveyId = parseInt(req.params.id);
 
   if (isNaN(surveyId)) {
@@ -130,33 +133,36 @@ router.delete("/api/surveys/:id", async (req, res: any) => {
 });
 
 // get questions so they can be answered on form page
-router.get("/api/surveys/:id/questions", async (req, res: any) => {
-  const surveyId = parseInt(req.params.id);
+router.get(
+  "/api/surveys/:id/questions",
+  async (req: Request, res: LooseResponse) => {
+    const surveyId = parseInt(req.params.id);
 
-  if (isNaN(surveyId)) {
-    return res.status(400).json({ error: "Invalid survey ID" });
-  }
+    if (isNaN(surveyId)) {
+      return res.status(400).json({ error: "Invalid survey ID" });
+    }
 
-  try {
-    // TODO: will need to fix the naming convention for question/prompt
-    // quick fix: prompt AS question, should be changed
-    const [questions] = await db.query(
-      `SELECT id, type, prompt AS question, min, max
+    try {
+      // TODO: will need to fix the naming convention for question/prompt
+      // quick fix: prompt AS question, should be changed
+      const [questions] = await db.query(
+        `SELECT id, type, prompt AS question, min, max
          FROM questions
          WHERE survey_id = ?
          ORDER BY question_order ASC`,
-      [surveyId]
-    );
+        [surveyId]
+      );
 
-    res.json(questions);
-  } catch (err) {
-    console.error("Error fetching questions:", err);
-    res.status(500).json({ error: "Failed to fetch survey questions" });
+      res.json(questions);
+    } catch (err) {
+      console.error("Error fetching questions:", err);
+      res.status(500).json({ error: "Failed to fetch survey questions" });
+    }
   }
-});
+);
 
 // submit answer endpoint for a form
-router.post("/api/responses", async (req, res: any) => {
+router.post("/api/responses", async (req: Request, res: LooseResponse) => {
   const { survey_id, answers } = req.body;
 
   if (!survey_id || !Array.isArray(answers) || answers.length === 0) {
@@ -202,108 +208,117 @@ router.post("/api/responses", async (req, res: any) => {
 });
 
 // endpoint to get all the responses for the data table
-router.get("/api/surveys/:id/responses", async (req, res: any) => {
-  const surveyId = parseInt(req.params.id);
-  if (isNaN(surveyId)) {
-    return res.status(400).json({ error: "Invalid survey ID" });
-  }
+router.get(
+  "/api/surveys/:id/responses",
+  async (req: Request, res: LooseResponse) => {
+    const surveyId = parseInt(req.params.id);
+    if (isNaN(surveyId)) {
+      return res.status(400).json({ error: "Invalid survey ID" });
+    }
 
-  try {
-    // 1. Get all questions for the survey
-    // TODO: verify the prompt column; this attribute is called...
-    // ... question in the frontend
-    const [questionsRaw] = await db.query(
-      `SELECT id, prompt FROM questions WHERE survey_id = ? ORDER BY question_order`,
-      [surveyId]
-    );
+    try {
+      // 1. Get all questions for the survey
+      // TODO: verify the prompt column; this attribute is called...
+      // ... question in the frontend
+      const [questionsRaw] = await db.query(
+        `SELECT id, prompt FROM questions WHERE survey_id = ? ORDER BY question_order`,
+        [surveyId]
+      );
 
-    // NOTE: this is a fix for the issue of "Property 'find' does not exist on type 'QueryResult'"
-    const questions = questionsRaw as { id: number; prompt: string }[];
+      // NOTE: this is a fix for the issue of "Property 'find' does not exist on type 'QueryResult'"
+      const questions = questionsRaw as { id: number; prompt: string }[];
 
-    // 2. Get all responses for the survey
-    const [rows] = await db.query(
-      `SELECT responses.id AS response_id, responses.responded_at, answers.question_id, answers.answer_text
+      // 2. Get all responses for the survey
+      const [rows] = await db.query(
+        `SELECT responses.id AS response_id, responses.responded_at, answers.question_id, answers.answer_text
        FROM responses
        JOIN answers ON responses.id = answers.response_id
        WHERE responses.survey_id = ?
        ORDER BY responses.id, answers.question_id`,
-      [surveyId]
-    );
+        [surveyId]
+      );
 
-    // 3. Reshape results into rows like:
-    // [{ response_id, responded_at, "Question 1": "Answer", ... }]
-    const grouped: Record<number, any> = {};
+      // 3. Reshape results into rows like:
+      // [{ response_id, responded_at, "Question 1": "Answer", ... }]
+      const grouped: Record<number, any> = {};
 
-    for (const row of rows as any[]) {
-      const responseId = row.response_id;
-      if (!grouped[responseId]) {
-        grouped[responseId] = {
-          response_id: responseId,
-          responded_at: row.responded_at,
-        };
+      for (const row of rows as any[]) {
+        const responseId = row.response_id;
+        if (!grouped[responseId]) {
+          grouped[responseId] = {
+            response_id: responseId,
+            responded_at: row.responded_at,
+          };
+        }
+
+        const question = questions.find((q: any) => q.id === row.question_id);
+        if (question) {
+          grouped[responseId][question.prompt] = row.answer_text;
+        }
       }
 
-      const question = questions.find((q: any) => q.id === row.question_id);
-      if (question) {
-        grouped[responseId][question.prompt] = row.answer_text;
-      }
+      res.json(Object.values(grouped));
+    } catch (err) {
+      console.error("Error fetching survey responses:", err);
+      res.status(500).json({ error: "Failed to load survey responses" });
     }
-
-    res.json(Object.values(grouped));
-  } catch (err) {
-    console.error("Error fetching survey responses:", err);
-    res.status(500).json({ error: "Failed to load survey responses" });
   }
-});
+);
 
 // deletes a response and its answers; aka a row from the data table
-router.delete("/api/responses/:id", async (req, res: any) => {
-  const responseId = parseInt(req.params.id);
+router.delete(
+  "/api/responses/:id",
+  async (req: Request, res: LooseResponse) => {
+    const responseId = parseInt(req.params.id);
 
-  if (isNaN(responseId)) {
-    return res.status(400).json({ error: "Invalid response ID" });
-  }
-
-  try {
-    const [result] = await db.query(`DELETE FROM responses WHERE id = ?`, [
-      responseId,
-    ]);
-
-    const affected = (result as any).affectedRows;
-    if (affected === 0) {
-      return res.status(404).json({ error: "Response not found" });
+    if (isNaN(responseId)) {
+      return res.status(400).json({ error: "Invalid response ID" });
     }
 
-    res.json({ message: "Response deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting response:", err);
-    res.status(500).json({ error: "Failed to delete response" });
+    try {
+      const [result] = await db.query(`DELETE FROM responses WHERE id = ?`, [
+        responseId,
+      ]);
+
+      const affected = (result as any).affectedRows;
+      if (affected === 0) {
+        return res.status(404).json({ error: "Response not found" });
+      }
+
+      res.json({ message: "Response deleted successfully" });
+    } catch (err) {
+      console.error("Error deleting response:", err);
+      res.status(500).json({ error: "Failed to delete response" });
+    }
   }
-});
+);
 
 // endpoint to get a record. used in the update page to prefill
 // the form values
-router.get("/api/responses/:id/answers", async (req, res: any) => {
-  const responseId = parseInt(req.params.id);
-  if (isNaN(responseId)) {
-    return res.status(400).json({ error: "Invalid response ID" });
-  }
+router.get(
+  "/api/responses/:id/answers",
+  async (req: Request, res: LooseResponse) => {
+    const responseId = parseInt(req.params.id);
+    if (isNaN(responseId)) {
+      return res.status(400).json({ error: "Invalid response ID" });
+    }
 
-  try {
-    const [answers] = await db.query(
-      `SELECT question_id, answer_text AS answer FROM answers WHERE response_id = ?`,
-      [responseId]
-    );
-    res.json(answers);
-  } catch (err) {
-    console.error("Error loading response answers:", err);
-    res.status(500).json({ error: "Failed to fetch answers" });
+    try {
+      const [answers] = await db.query(
+        `SELECT question_id, answer_text AS answer FROM answers WHERE response_id = ?`,
+        [responseId]
+      );
+      res.json(answers);
+    } catch (err) {
+      console.error("Error loading response answers:", err);
+      res.status(500).json({ error: "Failed to fetch answers" });
+    }
   }
-});
+);
 
 // update endpoint. since the responses are simple, deleting the
 // the response and recreating it instead of partial updates
-router.put("/api/responses/:id", async (req, res: any) => {
+router.put("/api/responses/:id", async (req: Request, res: LooseResponse) => {
   const responseId = parseInt(req.params.id);
   const { answers } = req.body;
 
