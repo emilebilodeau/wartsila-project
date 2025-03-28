@@ -19,8 +19,6 @@ export class HomeComponent {
     private surveyState: SurveyStateService
   ) {}
 
-  // TODO: come back to this ngOnInit(). behaviour looks different...
-  //... than in the form page component
   ngOnInit(): void {
     this.http.get<Survey[]>('http://localhost:8800/api/surveys').subscribe({
       next: (data) => {
@@ -36,8 +34,15 @@ export class HomeComponent {
   }
 
   selectSurvey(survey: Survey) {
-    this.selectedSurveyId = survey.id;
-    this.surveyState.setSurvey(survey);
+    // deselects
+    if (this.selectedSurveyId === survey.id) {
+      this.selectedSurveyId = null;
+      this.surveyState.setSurvey(null);
+      // selects
+    } else {
+      this.selectedSurveyId = survey.id;
+      this.surveyState.setSurvey(survey);
+    }
   }
 
   deleteSurvey(id: number): void {
@@ -49,7 +54,7 @@ export class HomeComponent {
       next: () => {
         this.surveys = this.surveys.filter((s) => s.id !== id);
 
-        // If the deleted survey was selected, clear it
+        // if the deleted survey was selected, clear it
         if (this.selectedSurveyId === id) {
           this.selectedSurveyId = null;
           this.surveyState.setSurvey(null);
