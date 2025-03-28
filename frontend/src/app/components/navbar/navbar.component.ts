@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 import { SurveyStateService } from '../../state/survey-state.service';
 import { Survey } from '../../models/survey.model';
 
@@ -13,7 +14,11 @@ export class NavbarComponent {
   selectedSurvey: Survey | null = null;
   surveyId: number | null = null;
 
-  constructor(private surveyState: SurveyStateService) {}
+  constructor(
+    private surveyState: SurveyStateService,
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.surveyState.getSurvey$().subscribe((survey) => {
@@ -24,5 +29,11 @@ export class NavbarComponent {
 
   handleNoSurvey(): void {
     alert('Please select a survey first.');
+  }
+
+  logout(): void {
+    this.auth.logout();
+    this.surveyState.setSurvey(null);
+    this.router.navigate(['/login']);
   }
 }
