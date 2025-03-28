@@ -1,4 +1,7 @@
+<!--hides navbar if not logged in -->
+@if (!isPublicRoute()){
 <app-navbar />
+}
 <main>
   <router-outlet />
 </main>

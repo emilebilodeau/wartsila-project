@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
+// service for login and register page
 export class AuthService {
   private baseUrl = 'http://localhost:8800/api';
 
