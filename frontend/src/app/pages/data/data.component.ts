@@ -11,10 +11,7 @@ import { Survey } from '../../models/survey.model';
   templateUrl: './data.component.html',
   styleUrl: './data.component.scss',
 })
-
-// NOTE: this still works without "implements OnInit"; look into why
 export class DataComponent {
-  // TODO: include a different render if there is no answers
   columns: { key: string; label: string }[] = [];
   rows: any[] = [];
   surveyId: number | null = null;

@@ -11,6 +11,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Survey } from '../../models/survey.model';
 import { SurveyStateService } from '../../state/survey-state.service';
+import { take } from 'rxjs/operators';
 import { TextqComponent } from '../../components/textq/textq.component';
 import { NumberqComponent } from '../../components/numberq/numberq.component';
 import { YesnoqComponent } from '../../components/yesnoq/yesnoq.component';
@@ -33,7 +34,6 @@ export class FormComponent implements OnInit {
   form!: FormGroup;
   surveyTitle: string | null = '';
   surveyId: number | null = null;
-  loading: boolean = true;
   // for edit mode
   responseId: number | null = null;
 
@@ -63,10 +63,14 @@ export class FormComponent implements OnInit {
         .get<Survey>(`http://localhost:8800/api/surveys/${survey_id}`)
         .subscribe((survey) => this.surveyState.setSurvey(survey));
     }
-    // TODO: come back to this. was losing the survey title upon refresh
-    this.surveyState.getSurvey$().subscribe((survey) => {
-      this.surveyTitle = survey?.title ?? null;
-    });
+
+    // not necessary to keep the subscription once title is set
+    this.surveyState
+      .getSurvey$()
+      .pipe(take(1))
+      .subscribe((survey) => {
+        this.surveyTitle = survey?.title ?? null;
+      });
 
     // for edit mode; gets the id of the record to fetch answers later
     this.responseId = parseInt(
@@ -87,8 +91,6 @@ export class FormComponent implements OnInit {
           if (this.responseId) {
             this.loadResponseAnswers(this.responseId);
           }
-
-          this.loading = false;
         },
         error: (err) => {
           console.error('Failed to load questions:', err);
@@ -97,6 +99,8 @@ export class FormComponent implements OnInit {
       });
   }
 
+  // essentially same as questionForm in create-form.component.ts, except we...
+  //... don't know exactly what the form will look like ahead of time
   buildForm(questions: Question[]): void {
     const formGroup: { [key: string]: FormControl } = {};
 
@@ -109,6 +113,7 @@ export class FormComponent implements OnInit {
     this.form = this.fb.group(formGroup);
   }
 
+  // this is used to give the control to the question components as input
   // NOTE: be careful with ids: in the backend they're int, but right now
   // the implementation requires them to be string
   getControl(id: string): FormControl {

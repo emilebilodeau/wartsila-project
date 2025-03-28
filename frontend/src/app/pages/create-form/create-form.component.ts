@@ -17,6 +17,8 @@ import { Question } from '../../models/question.model';
 @Component({
   selector: 'app-create-form',
   imports: [
+    // need to be imported so [formControl] can be used in template...
+    //... and surveyTitle can be bound to the input
     ReactiveFormsModule,
     TextqComponent,
     NumberqComponent,
@@ -28,7 +30,6 @@ import { Question } from '../../models/question.model';
 })
 export class CreateFormComponent {
   questionTypes = ['text', 'number', 'yesno', 'linear'];
-  selectedType: string = 'text';
 
   // list of created questions
   questions: Question[] = [];
@@ -59,6 +60,7 @@ export class CreateFormComponent {
   addQuestion(): void {
     const { question, type, min, max } = this.questionForm.value;
 
+    // temporary id for deletion. not used in backend
     const id = 'q' + this.questionCounter++;
 
     const newQuestion: Question = {

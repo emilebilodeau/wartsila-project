@@ -23,23 +23,21 @@ router.post("/api/surveys", async (req: any, res: any) => {
     );
     const surveyId = (surveyResult as any).insertId;
 
-    // 2. Insert each question
-    const questionInsertPromises = questions.map((q, index) =>
-      connection.query(
-        `INSERT INTO questions (survey_id, type, prompt, min, max, question_order)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          surveyId,
-          q.type,
-          q.question,
-          q.type === "linear" ? q.min : null,
-          q.type === "linear" ? q.max : null,
-          index + 1,
-        ]
-      )
-    );
+    // 2. Bulk insert questions
+    const values = questions.map((q, index) => [
+      surveyId,
+      q.type,
+      q.question,
+      q.type === "linear" ? q.min : null,
+      q.type === "linear" ? q.max : null,
+      index + 1,
+    ]);
 
-    await Promise.all(questionInsertPromises);
+    await connection.query(
+      `INSERT INTO questions (survey_id, type, prompt, min, max, question_order)
+       VALUES ${values.map(() => "(?, ?, ?, ?, ?, ?)").join(", ")}`,
+      values.flat()
+    );
 
     await connection.commit();
     res.status(201).json({ message: "Survey created", surveyId });
@@ -176,20 +174,19 @@ router.post("/api/responses", async (req, res: any) => {
     );
     const responseId = (responseResult as any).insertId;
 
-    // 2. Insert answers
-    const answerInsertPromises = answers.map((ans: any) =>
-      connection.query(
-        `INSERT INTO answers (response_id, question_id, answer_text, created_at)
-           VALUES (?, ?, ?, NOW())`,
-        [
-          responseId,
-          ans.question_id,
-          String(ans.answer), // store all answers as strings for now
-        ]
-      )
-    );
+    // TODO: double check this
+    // 2. Bulk insert answers
+    const values = answers.map((ans) => [
+      responseId,
+      ans.question_id,
+      String(ans.answer),
+    ]);
 
-    await Promise.all(answerInsertPromises);
+    await connection.query(
+      `INSERT INTO answers (response_id, question_id, answer_text, created_at)
+       VALUES ${values.map(() => "(?, ?, ?, NOW())").join(", ")}`,
+      values.flat()
+    );
 
     await connection.commit();
     res
@@ -323,6 +320,7 @@ router.put("/api/responses/:id", async (req, res: any) => {
       responseId,
     ]);
 
+    // NOTE: needs optimization
     // 2. Insert updated answers
     const insertPromises = answers.map((ans: any) =>
       connection.query(
