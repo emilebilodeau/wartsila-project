@@ -19,6 +19,7 @@ router.post(
   authenticateToken,
   async (req: AuthenticatedRequest, res: LooseResponse) => {
     const { title, questions } = req.body;
+    const userId = req.userId;
 
     if (!title || !Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({ error: "Invalid survey payload" });
@@ -30,8 +31,8 @@ router.post(
 
       // 1. Insert the survey
       const [surveyResult] = await connection.query(
-        `INSERT INTO surveys (title, created_at) VALUES (?, NOW())`,
-        [title]
+        `INSERT INTO surveys (title, created_by, created_at) VALUES (?, ?, NOW())`,
+        [title, userId]
       );
       const surveyId = (surveyResult as any).insertId;
 
@@ -68,12 +69,18 @@ router.get(
   "/api/surveys",
   authenticateToken,
   async (req: AuthenticatedRequest, res: LooseResponse) => {
+    const userId = req.userId;
+
     try {
-      const [rows] = await db.query(`
+      const [rows] = await db.query(
+        `
         SELECT id, title, created_at
         FROM surveys
+        WHERE created_by = ?
         ORDER BY created_at DESC
-      `);
+      `,
+        [userId]
+      );
 
       res.json(rows);
     } catch (err) {
