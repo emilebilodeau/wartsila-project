@@ -90,16 +90,6 @@ router.get(
   }
 );
 
-// TODO: when user is implemented, update the query
-// const userId = req.user.id;
-
-// const [rows] = await db.query(`
-//   SELECT id, title, created_at
-//   FROM surveys
-//   WHERE created_by = ?
-//   ORDER BY created_at DESC
-// `, [userId]);
-
 // gets an individual survey, made for the survey state on...
 // ... refresh or direct nagivation
 router.get(
