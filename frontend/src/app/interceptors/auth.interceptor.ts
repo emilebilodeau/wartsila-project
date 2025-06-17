@@ -4,13 +4,15 @@ import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
+  HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, private router: Router) {}
 
   intercept(
     req: HttpRequest<any>,
@@ -22,15 +24,26 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(req);
     }
 
+    let authReq = req;
+
     if (token) {
-      const authReq = req.clone({
+      authReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,
         },
       });
-      return next.handle(authReq);
     }
 
-    return next.handle(req);
+    return next.handle(authReq).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401 || error.status === 403) {
+          this.auth.logout();
+          alert('Your session has expired. Please log in again.');
+          this.router.navigate(['/login']);
+        }
+
+        return throwError(() => error);
+      })
+    );
   }
 }

@@ -33,7 +33,6 @@ export class NavbarComponent {
 
   logout(): void {
     this.auth.logout();
-    this.surveyState.setSurvey(null);
     this.router.navigate(['/login']);
   }
 }

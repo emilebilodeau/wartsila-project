@@ -10,7 +10,8 @@ export const authGuard: CanActivateFn = () => {
   if (auth.isLoggedIn()) {
     return true;
   } else {
-    router.navigate(['/login']);
-    return false;
+    auth.logout();
+    alert('Please re-login');
+    return router.parseUrl('/login');
   }
 };
