@@ -11,7 +11,7 @@ export const authGuard: CanActivateFn = () => {
     return true;
   } else {
     auth.logout();
-    alert('Please re-login');
+    alert('Please sign back in');
     return router.parseUrl('/login');
   }
 };
