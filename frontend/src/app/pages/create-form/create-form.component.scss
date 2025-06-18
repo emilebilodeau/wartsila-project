@@ -1,4 +1,5 @@
 .question-form {
+  font-family: system-ui, sans-serif;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -8,6 +9,7 @@
 }
 
 .survey-box {
+  font-family: system-ui, sans-serif;
   width: 40%;
   margin: 16px auto; /* Center it */
   padding: 20px;
