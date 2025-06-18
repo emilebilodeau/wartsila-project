@@ -1,21 +1,23 @@
-<!--TODO: make this a reusable component -->
+<!--TODO: make this a reusable component, use it in create-form -->
 @if (form){
 <form class="survey-box" [formGroup]="form" (ngSubmit)="onSubmit()">
   <h2>{{ surveyTitle }}</h2>
 
-  @for (question of questions; track question.id) { @if (question.type ===
-  'linear') {
-  <app-linearq [question]="question" [control]="getControl(question.id)" />
-  } @else if (question.type === 'yesno') {
-  <app-yesnoq [question]="question" [control]="getControl(question.id)" />
-  } @else if (question.type === 'text') {
-  <app-textq [question]="question" [control]="getControl(question.id)" />
-  } @else if (question.type === 'number') {
-  <app-numberq [question]="question" [control]="getControl(question.id)" />
-  }
-
-  <hr />
-  }
+  <div class="question-list">
+    @for (question of questions; track question.id) {
+    <div class="question-wrapper">
+      @if (question.type === 'linear') {
+      <app-linearq [question]="question" [control]="getControl(question.id)" />
+      } @else if (question.type === 'yesno') {
+      <app-yesnoq [question]="question" [control]="getControl(question.id)" />
+      } @else if (question.type === 'text') {
+      <app-textq [question]="question" [control]="getControl(question.id)" />
+      } @else if (question.type === 'number') {
+      <app-numberq [question]="question" [control]="getControl(question.id)" />
+      }
+    </div>
+    }
+  </div>
 
   <button type="submit" [disabled]="form.invalid">Submit</button>
 </form>

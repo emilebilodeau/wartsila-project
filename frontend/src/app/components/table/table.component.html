@@ -13,10 +13,15 @@
       @for (column of columns; track column.key) {
       <td>{{ row[column.key] }}</td>
       }
-      <td>
-        <button (click)="deleteResponse(row.response_id)">Delete</button>
-        <button [routerLink]="['/edit', surveyId, row.response_id]">
+      <td class="action">
+        <button
+          class="update-btn"
+          [routerLink]="['/edit', surveyId, row.response_id]"
+        >
           Update
+        </button>
+        <button class="delete-btn" (click)="deleteResponse(row.response_id)">
+          Delete
         </button>
       </td>
     </tr>
