@@ -26,27 +26,29 @@
   <button type="submit" [disabled]="questionForm.invalid">Add Question</button>
 </form>
 
-<hr />
-
 <!-- Render added questions -->
 <!-- NOTE: can probably try to make a reusable component from the original form page -->
 <div class="survey-box">
   <h3>Survey Preview</h3>
 
-  @for (q of questions; track q.id) { @if (q.type === 'text') {
-  <app-textq [question]="q" [control]="previewControl" />
-  } @else if (q.type === 'number') {
-  <app-numberq [question]="q" [control]="previewControl" />
-  } @else if (q.type === 'yesno') {
-  <app-yesnoq [question]="q" [control]="previewControl" />
-  } @else if (q.type === 'linear') {
-  <app-linearq [question]="q" [control]="previewControl" />
-  }
-  <div>
-    <button (click)="removeQuestion(q.id)">Delete</button>
+  <div class="question-list">
+    @for (q of questions; track q.id) {
+    <div class="question-wrapper">
+      @if (q.type === 'text') {
+      <app-textq [question]="q" [control]="previewControl" />
+      } @else if (q.type === 'number') {
+      <app-numberq [question]="q" [control]="previewControl" />
+      } @else if (q.type === 'yesno') {
+      <app-yesnoq [question]="q" [control]="previewControl" />
+      } @else if (q.type === 'linear') {
+      <app-linearq [question]="q" [control]="previewControl" />
+      }
+      <div>
+        <button (click)="removeQuestion(q.id)">Delete</button>
+      </div>
+    </div>
+    }
   </div>
-  <hr />
-  }
   <div class="title-section">
     <label for="survey-title">Survey Title</label>
     <input id="survey-title" type="text" [formControl]="surveyTitle" />
